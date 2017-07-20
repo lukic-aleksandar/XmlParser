@@ -49,6 +49,11 @@ namespace Microsoft.Language.Xml
             {
                 return null;
             }
+
+            set
+            {
+                
+            }
         }
 
         protected override IEnumerable<IXmlElementSyntax> SyntaxElements
@@ -56,6 +61,11 @@ namespace Microsoft.Language.Xml
             get
             {
                 return Enumerable.Empty<IXmlElementSyntax>();
+            }
+
+            set
+            {
+                
             }
         }
     }

@@ -4,12 +4,12 @@ namespace Microsoft.Language.Xml
 {
     public interface IXmlElementSyntax
     {
-        XmlNameSyntax Name { get; }
-        SyntaxNode Content { get; }
-        IXmlElementSyntax Parent { get; }
-        IEnumerable<IXmlElementSyntax> Elements { get; }
-        IEnumerable<XmlAttributeSyntax> Attributes { get; }
-        XmlAttributeSyntax this[string attributeName] { get; }
+        XmlNameSyntax Name { get; set; }
+        SyntaxNode Content { get; set; }
+        IXmlElementSyntax Parent { get; set; }
+        IEnumerable<IXmlElementSyntax> Elements { get; set; }
+        IEnumerable<XmlAttributeSyntax> Attributes { get; set; }
+        XmlAttributeSyntax this[string attributeName] { get; set; }
         IXmlElementSyntax AsSyntaxElement { get; }
         IXmlElement AsElement { get; }
     }

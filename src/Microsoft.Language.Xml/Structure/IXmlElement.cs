@@ -6,12 +6,12 @@ namespace Microsoft.Language.Xml
     {
         int Start { get; }
         int FullWidth { get; }
-        string Name { get; }
-        string Value { get; }
-        IXmlElement Parent { get; }
-        IEnumerable<IXmlElement> Elements { get; }
-        IEnumerable<KeyValuePair<string, string>> Attributes { get; }
-        string this[string attributeName] { get; }
+        string Name { get; set; }
+        string Value { get; set; }
+        IXmlElement Parent { get; set; }
+        IEnumerable<IXmlElement> Elements { get; set; }
+        IEnumerable<KeyValuePair<string, string>> Attributes { get; set; }
+        string this[string attributeName] { get; set; }
         IXmlElementSyntax AsSyntaxElement { get; }
     }
 }

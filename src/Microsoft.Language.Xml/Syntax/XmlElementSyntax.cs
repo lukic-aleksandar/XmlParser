@@ -8,7 +8,7 @@ namespace Microsoft.Language.Xml
     {
         public XmlElementStartTagSyntax StartTag { get; set; }
         public XmlElementEndTagSyntax EndTag { get; set; }
-        public override SyntaxNode Content { get; }
+        public override SyntaxNode Content { get; set; }
 
         public XmlElementSyntax(XmlElementStartTagSyntax start, SyntaxNode content, XmlElementEndTagSyntax end) : 
             base(SyntaxKind.XmlElement, start?.NameNode, start?.Attributes)
@@ -50,6 +50,19 @@ namespace Microsoft.Language.Xml
                 }
 
                 return Enumerable.Empty<IXmlElementSyntax>();
+            }
+
+            set
+            {
+                SyntaxListPool pool = new SyntaxListPool();
+                var syntaxElementsList = pool.Allocate<XmlElementSyntax>();
+
+                foreach (var element in value)
+                {
+                    syntaxElementsList.Add(element as XmlElementSyntax);
+                }
+
+                Content = syntaxElementsList.ToList().Node;
             }
         }
 

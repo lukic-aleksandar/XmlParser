@@ -18,9 +18,9 @@ namespace Microsoft.Language.Xml
             this.AttributesNode = attributes;
         }
 
-        protected abstract IEnumerable<IXmlElementSyntax> SyntaxElements { get; }
+        protected abstract IEnumerable<IXmlElementSyntax> SyntaxElements { get; set; }
 
-        public abstract SyntaxNode Content { get; }
+        public abstract SyntaxNode Content { get; set; }
 
         IXmlElement IXmlElement.Parent
         {
@@ -39,6 +39,8 @@ namespace Microsoft.Language.Xml
 
                 return null;
             }
+
+            set { Parent = value as SyntaxNode ?? Parent; }
         }
 
         public string Name
@@ -52,6 +54,14 @@ namespace Microsoft.Language.Xml
 
                 return NameNode.Name;
             }
+
+            set
+            {
+                if (NameNode != null)
+                {
+                    NameNode.Name = value;
+                }
+            }
         }
 
         public IEnumerable<IXmlElement> Elements
@@ -60,6 +70,8 @@ namespace Microsoft.Language.Xml
             {
                 return SyntaxElements.Select(el => el.AsElement);
             }
+
+            set { SyntaxElements = value.Select(el => el.AsSyntaxElement); }
         }
 
         public IEnumerable<KeyValuePair<string, string>> Attributes
@@ -83,6 +95,30 @@ namespace Microsoft.Language.Xml
                     yield return new KeyValuePair<string, string>(attribute.Name, attribute.Value);
                 }
             }
+
+            set
+            {
+                SyntaxListPool pool = new SyntaxListPool();
+                var attributeSyntaxList = pool.Allocate<XmlAttributeSyntax>();
+                
+                foreach (var pair in value)
+                {
+                    var nameToken = SyntaxFactory.XmlNameToken(pair.Key, null, null);
+                    var name = SyntaxFactory.XmlName(null, nameToken);
+                    var equals = SyntaxFactory.Token(null, SyntaxKind.EqualsToken, null, "=");
+                    var equalsPunct = equals as PunctuationSyntax;
+                    var doubleQuote = SyntaxFactory.Token(null, SyntaxKind.DoubleQuoteToken, null, "\"");
+                    var doubleQuotePunct = doubleQuote as PunctuationSyntax;
+                    var textNode = SyntaxFactory.XmlTextLiteralToken(pair.Value, pair.Value, null, null);
+
+                    var textTokens = pool.Allocate<XmlTextTokenSyntax>();
+                    textTokens.Add(textNode);
+                    var val = SyntaxFactory.XmlString(doubleQuotePunct, textTokens.ToList(), doubleQuotePunct);
+                    attributeSyntaxList.Add(SyntaxFactory.XmlAttribute(name, equalsPunct, val) as XmlAttributeSyntax);
+                }
+
+                AttributesNode = attributeSyntaxList.ToList().Node;
+            }
         }
 
         public string Value
@@ -91,6 +127,8 @@ namespace Microsoft.Language.Xml
             {
                 return Content?.ToFullString() ?? "";
             }
+
+            set { Content = Parser.ParseText(value); }
         }
 
         XmlNameSyntax IXmlElementSyntax.Name
@@ -99,6 +137,8 @@ namespace Microsoft.Language.Xml
             {
                 return NameNode;
             }
+
+            set { NameNode = value; }
         }
 
 
@@ -127,6 +167,8 @@ namespace Microsoft.Language.Xml
 
                 return null;
             }
+
+            set { Parent = value as SyntaxNode; }
         }
 
         IEnumerable<IXmlElementSyntax> IXmlElementSyntax.Elements
@@ -135,6 +177,8 @@ namespace Microsoft.Language.Xml
             {
                 return SyntaxElements;
             }
+
+            set { SyntaxElements = value; }
         }
 
         IEnumerable<XmlAttributeSyntax> IXmlElementSyntax.Attributes
@@ -157,6 +201,19 @@ namespace Microsoft.Language.Xml
                 {
                     yield return attribute;
                 }
+            }
+
+            set
+            {
+                SyntaxListPool pool = new SyntaxListPool();
+                var attributeList = pool.Allocate<XmlAttributeSyntax>();
+
+                foreach (var attrSyntax in value)
+                {
+                    attributeList.Add(attrSyntax);
+                }
+
+                AttributesNode = attributeList.ToList().Node;
             }
         }
 
@@ -182,6 +239,17 @@ namespace Microsoft.Language.Xml
 
                 return null;
             }
+
+            set
+            {
+                foreach (var attribute in AsSyntaxElement.Attributes)
+                {
+                    if (attribute.Name == attributeName)
+                    {
+                       // attribute.Value = value;
+                    }
+                }
+            }
         }
 
         public string this[string attributeName]
@@ -197,6 +265,18 @@ namespace Microsoft.Language.Xml
                 }
 
                 return null;
+            }
+            set
+            {
+                foreach (var attribute in Attributes)
+                {
+                    if (attribute.Key == attributeName)
+                    {
+                        
+                        //attribute.Value = value;
+                        break;
+                    }
+                }
             }
         }
     }

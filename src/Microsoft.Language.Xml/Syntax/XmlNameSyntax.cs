@@ -45,6 +45,14 @@ namespace Microsoft.Language.Xml
 
                 return LocalName.Text;
             }
+
+            set
+            {
+                if (LocalName != null)
+                {
+                    LocalName.Text = value;
+                }
+            }
         }
 
         public override string ToString()

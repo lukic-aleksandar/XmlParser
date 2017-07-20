@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace Microsoft.Language.Xml
 {
@@ -33,6 +34,8 @@ namespace Microsoft.Language.Xml
             {
                 return Body as IXmlElement;
             }
+
+            set { Body = value as XmlNodeSyntax; }
         }
 
         public IXmlElementSyntax RootSyntax
@@ -54,6 +57,14 @@ namespace Microsoft.Language.Xml
 
                 return Root.Name;
             }
+
+            set
+            {
+                if (Root != null)
+                {
+                    Root.Name = value;
+                }
+            }
         }
 
         IXmlElement IXmlElement.Parent
@@ -62,6 +73,7 @@ namespace Microsoft.Language.Xml
             {
                 return null;
             }
+            set { }
         }
 
         public IEnumerable<IXmlElement> Elements
@@ -74,6 +86,14 @@ namespace Microsoft.Language.Xml
                 }
 
                 return Root.Elements;
+            }
+
+            set
+            {
+                if (Root != null)
+                {
+                    Root.Elements = value;
+                }
             }
         }
 
@@ -88,6 +108,14 @@ namespace Microsoft.Language.Xml
 
                 return Root.Attributes;
             }
+
+            set
+            {
+                if (Root != null)
+                {
+                    Root.Attributes = value;
+                }
+            }
         }
 
         public string Value
@@ -100,6 +128,14 @@ namespace Microsoft.Language.Xml
                 }
 
                 return Root.Value;
+            }
+
+            set
+            {
+                if (Root != null)
+                {
+                    Root.Value = value;
+                }
             }
         }
 
@@ -121,6 +157,14 @@ namespace Microsoft.Language.Xml
                 }
 
                 return Root[attributeName];
+            }
+
+            set
+            {
+                if (Root != null)
+                {
+                    Root[attributeName] = value;
+                }
             }
         }
 

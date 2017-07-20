@@ -78,7 +78,7 @@ namespace Microsoft.Language.Xml
             public int Index;
         }
 
-        internal int ComputeFullWidthIterative(int start = 0)
+        public int ComputeFullWidthIterative(int start = 0)
         {
             return ComputeFullWidthIterative(this, start);
         }
