@@ -74,7 +74,7 @@ namespace Microsoft.Language.Xml
             set { SyntaxElements = value.Select(el => el.AsSyntaxElement); }
         }
 
-        public IEnumerable<KeyValuePair<string, string>> Attributes
+        public virtual IEnumerable<KeyValuePair<string, string>> Attributes
         {
             get
             {
