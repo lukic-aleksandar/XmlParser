@@ -18,10 +18,15 @@ namespace Microsoft.Language.Xml
             this.AttributesNode = attributes;
         }
 
-        protected abstract IEnumerable<IXmlElementSyntax> SyntaxElements { get; set; }
+        protected abstract IEnumerable<XmlNodeSyntax> SyntaxNodes { get; set; }
 
         public abstract SyntaxNode Content { get; set; }
 
+        public abstract void AppendChild(XmlNodeSyntax node);
+        public abstract void InsertChildAt(XmlNodeSyntax node, int position);
+        public abstract void RemoveChildAt(int position);
+        public abstract void RemoveChild(XmlNodeSyntax node);
+      
         IXmlElement IXmlElement.Parent
         {
             get
@@ -64,17 +69,13 @@ namespace Microsoft.Language.Xml
             }
         }
 
-        public IEnumerable<IXmlElement> Elements
+        public IEnumerable<XmlNodeSyntax> Children
         {
-            get
-            {
-                return SyntaxElements.Select(el => el.AsElement);
-            }
-
-            set { SyntaxElements = value.Select(el => el.AsSyntaxElement); }
+            get { return SyntaxNodes; }
+            set { SyntaxNodes = value; }
         }
 
-        public virtual IEnumerable<KeyValuePair<string, string>> Attributes
+        public virtual IEnumerable<XmlAttributeSyntax> Attributes
         {
             get
             {
@@ -84,15 +85,16 @@ namespace Microsoft.Language.Xml
                 }
 
                 var singleAttribute = AttributesNode as XmlAttributeSyntax;
+
                 if (singleAttribute != null)
                 {
-                    yield return new KeyValuePair<string, string>(singleAttribute.Name, singleAttribute.Value);
+                    yield return singleAttribute;
                     yield break;
                 }
 
                 foreach (var attribute in AttributesNode.ChildNodes.OfType<XmlAttributeSyntax>())
                 {
-                    yield return new KeyValuePair<string, string>(attribute.Name, attribute.Value);
+                    yield return attribute;
                 }
             }
 
@@ -101,20 +103,9 @@ namespace Microsoft.Language.Xml
                 SyntaxListPool pool = new SyntaxListPool();
                 var attributeSyntaxList = pool.Allocate<XmlAttributeSyntax>();
                 
-                foreach (var pair in value)
-                {
-                    var nameToken = SyntaxFactory.XmlNameToken(pair.Key, null, null);
-                    var name = SyntaxFactory.XmlName(null, nameToken);
-                    var equals = SyntaxFactory.Token(null, SyntaxKind.EqualsToken, null, "=");
-                    var equalsPunct = equals as PunctuationSyntax;
-                    var doubleQuote = SyntaxFactory.Token(null, SyntaxKind.DoubleQuoteToken, null, "\"");
-                    var doubleQuotePunct = doubleQuote as PunctuationSyntax;
-                    var textNode = SyntaxFactory.XmlTextLiteralToken(pair.Value, pair.Value, null, null);
-
-                    var textTokens = pool.Allocate<XmlTextTokenSyntax>();
-                    textTokens.Add(textNode);
-                    var val = SyntaxFactory.XmlString(doubleQuotePunct, textTokens.ToList(), doubleQuotePunct);
-                    attributeSyntaxList.Add(SyntaxFactory.XmlAttribute(name, equalsPunct, val) as XmlAttributeSyntax);
+                foreach (var attr in value)
+                { 
+                    attributeSyntaxList.Add(attr);
                 }
 
                 AttributesNode = attributeSyntaxList.ToList().Node;
@@ -123,31 +114,20 @@ namespace Microsoft.Language.Xml
 
         public string Value
         {
-            get
-            {
-                return Content?.ToFullString() ?? "";
-            }
-
+            get { return Content?.ToFullString() ?? ""; }
             set { Content = Parser.ParseText(value); }
         }
 
         XmlNameSyntax IXmlElementSyntax.Name
         {
-            get
-            {
-                return NameNode;
-            }
-
+            get { return NameNode; }
             set { NameNode = value; }
         }
 
 
         public IXmlElementSyntax AsSyntaxElement
         {
-            get
-            {
-                return this;
-            }
+            get{ return this; }
         }
 
         IXmlElementSyntax IXmlElementSyntax.Parent
@@ -168,61 +148,12 @@ namespace Microsoft.Language.Xml
                 return null;
             }
 
-            set { Parent = value as SyntaxNode; }
-        }
-
-        IEnumerable<IXmlElementSyntax> IXmlElementSyntax.Elements
-        {
-            get
-            {
-                return SyntaxElements;
-            }
-
-            set { SyntaxElements = value; }
-        }
-
-        IEnumerable<XmlAttributeSyntax> IXmlElementSyntax.Attributes
-        {
-            get
-            {
-                if (AttributesNode == null)
-                {
-                    yield break;
-                }
-
-                var singleAttribute = AttributesNode as XmlAttributeSyntax;
-                if (singleAttribute != null)
-                {
-                    yield return singleAttribute;
-                    yield break;
-                }
-
-                foreach (var attribute in AttributesNode.ChildNodes.OfType<XmlAttributeSyntax>())
-                {
-                    yield return attribute;
-                }
-            }
-
-            set
-            {
-                SyntaxListPool pool = new SyntaxListPool();
-                var attributeList = pool.Allocate<XmlAttributeSyntax>();
-
-                foreach (var attrSyntax in value)
-                {
-                    attributeList.Add(attrSyntax);
-                }
-
-                AttributesNode = attributeList.ToList().Node;
-            }
+            set{ Parent = value as SyntaxNode; }
         }
 
         public IXmlElement AsElement
         {
-            get
-            {
-                return this;
-            }
+            get { return this; }
         }
 
         XmlAttributeSyntax IXmlElementSyntax.this[string attributeName]
@@ -246,7 +177,7 @@ namespace Microsoft.Language.Xml
                 {
                     if (attribute.Name == attributeName)
                     {
-                       // attribute.Value = value;
+                        //attribute.Value = value;
                     }
                 }
             }
@@ -258,7 +189,7 @@ namespace Microsoft.Language.Xml
             {
                 foreach (var attribute in Attributes)
                 {
-                    if (attribute.Key == attributeName)
+                    if (attribute.Name == attributeName)
                     {
                         return attribute.Value;
                     }
@@ -270,14 +201,82 @@ namespace Microsoft.Language.Xml
             {
                 foreach (var attribute in Attributes)
                 {
-                    if (attribute.Key == attributeName)
+                    if (attribute.Name == attributeName)
                     {
-                        
                         //attribute.Value = value;
                         break;
                     }
                 }
             }
+        }
+
+        public virtual void AddAttribute(XmlAttributeSyntax attribute)
+        {
+            SyntaxListPool pool = new SyntaxListPool();
+            var attributeList = pool.Allocate<XmlAttributeSyntax>();
+
+            if (attribute.Parent is IXmlElement)
+            {
+                ((IXmlElement)attribute.Parent).RemoveAttribute(attribute);
+            }
+
+            foreach (var attrSyntax in Attributes)
+            {
+                attributeList.Add(attrSyntax);
+            }
+
+            attribute.Parent = this;
+            attributeList.Add(attribute);
+
+            AttributesNode = attributeList.ToList().Node;
+        }
+
+        public virtual void RemoveAttribute(XmlAttributeSyntax attribute)
+        {
+            SyntaxListPool pool = new SyntaxListPool();
+            var attributeList = pool.Allocate<XmlAttributeSyntax>();
+
+            if (this != attribute.Parent)
+            {
+                throw new ArgumentException("This element does not contain provided attribute");
+            }
+
+            foreach (var attrSyntax in Attributes)
+            {
+                if (attrSyntax != attribute)
+                {
+                    attributeList.Add(attrSyntax);
+                }
+            }
+
+            AttributesNode = attributeList.ToList().Node;
+        }
+
+        public virtual void RemoveAttribute(string name)
+        {
+
+            SyntaxListPool pool = new SyntaxListPool();
+            var attributeList = pool.Allocate<XmlAttributeSyntax>();
+
+            foreach (var attrSyntax in Attributes)
+            {
+                if (attrSyntax.Name != name)
+                {
+                    attributeList.Add(attrSyntax);
+                }
+            }
+
+            AttributesNode = attributeList.ToList().Node;
+        }
+
+        internal bool AncestorNode(XmlNodeSyntax node)
+        {
+            for (var parentNode = this.Parent; parentNode != null && parentNode != this; parentNode = parentNode.Parent)
+            {
+                if (parentNode == node)
+                    return true;
+            }
+            return false;
         }
     }
 }

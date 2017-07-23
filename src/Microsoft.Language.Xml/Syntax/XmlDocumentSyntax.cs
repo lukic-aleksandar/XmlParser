@@ -76,7 +76,7 @@ namespace Microsoft.Language.Xml
             set { }
         }
 
-        public IEnumerable<IXmlElement> Elements
+        public IEnumerable<XmlNodeSyntax> Children
         {
             get
             {
@@ -85,19 +85,19 @@ namespace Microsoft.Language.Xml
                     return null;
                 }
 
-                return Root.Elements;
+                return Root.Children;
             }
 
             set
             {
                 if (Root != null)
                 {
-                    Root.Elements = value;
+                    Root.Children = value;
                 }
             }
         }
 
-        public IEnumerable<KeyValuePair<string, string>> Attributes
+        public IEnumerable<XmlAttributeSyntax> Attributes
         {
             get
             {
@@ -190,6 +190,44 @@ namespace Microsoft.Language.Xml
         public override SyntaxNode Accept(SyntaxVisitor visitor)
         {
             return visitor.VisitXmlDocument(this);
+        }
+
+        public void AppendChild(XmlNodeSyntax node)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void InsertChildAt(XmlNodeSyntax node, int position)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveChildAt(int position)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveChild(XmlNodeSyntax node)
+        {
+            if (Root == node)
+            {
+                Root = null;
+            }
+        }
+
+        public void AddAttribute(XmlAttributeSyntax attribute)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveAttribute(XmlAttributeSyntax attribute)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveAttribute(string name)
+        {
+            throw new NotSupportedException();
         }
     }
 }

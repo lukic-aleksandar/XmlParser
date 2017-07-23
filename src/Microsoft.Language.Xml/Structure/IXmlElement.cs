@@ -9,9 +9,17 @@ namespace Microsoft.Language.Xml
         string Name { get; set; }
         string Value { get; set; }
         IXmlElement Parent { get; set; }
-        IEnumerable<IXmlElement> Elements { get; set; }
-        IEnumerable<KeyValuePair<string, string>> Attributes { get; set; }
+        IEnumerable<XmlNodeSyntax> Children { get; set; }
+        IEnumerable<XmlAttributeSyntax> Attributes { get; set; }
         string this[string attributeName] { get; set; }
         IXmlElementSyntax AsSyntaxElement { get; }
+
+        void AppendChild(XmlNodeSyntax node);
+        void InsertChildAt(XmlNodeSyntax node, int position);
+        void RemoveChildAt(int position);
+        void RemoveChild(XmlNodeSyntax node);
+        void AddAttribute(XmlAttributeSyntax attribute);
+        void RemoveAttribute(XmlAttributeSyntax attribute);
+        void RemoveAttribute(string name);
     }
 }

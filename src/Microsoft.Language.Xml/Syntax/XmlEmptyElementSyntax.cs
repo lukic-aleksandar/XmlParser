@@ -50,23 +50,37 @@ namespace Microsoft.Language.Xml
                 return null;
             }
 
-            set
-            {
-                
-            }
+            set{}
         }
 
-        protected override IEnumerable<IXmlElementSyntax> SyntaxElements
+        public override void AppendChild(XmlNodeSyntax node)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void InsertChildAt(XmlNodeSyntax node, int position)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void RemoveChildAt(int position)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void RemoveChild(XmlNodeSyntax node)
+        {
+            throw new NotSupportedException();
+        }
+
+        protected override IEnumerable<XmlNodeSyntax> SyntaxNodes
         {
             get
             {
-                return Enumerable.Empty<IXmlElementSyntax>();
+                return new List<XmlNodeSyntax>();
             }
 
-            set
-            {
-                
-            }
+            set {}
         }
     }
 }
